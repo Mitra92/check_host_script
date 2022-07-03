@@ -20,20 +20,6 @@ def add_log(message):
         script_log.write(date_time + message + '\n')
 
 
-'''def get_last_line(path):
-    """
-    проверим, есть ли лог и прочитаем последнюю строку. Нас интересует строка о неуспешной проверке
-    @param path:
-    @return:
-    """
-    if not os.path.isfile(path):
-        with open(LOG_PATH, 'a+') as script_log:
-            script_log.write('date&time | message \n')
-    with open(LOG_PATH, 'r') as script_log:
-        last_line = script_log.readlines()[-1]
-    return last_line'''
-
-
 if __name__ == '__main__':
     """python test.py --pwd env['post_password'] --ip 8.8.8.12"""
     parser = argparse.ArgumentParser(prog='PROG')
