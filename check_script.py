@@ -1,9 +1,13 @@
+"""
+Задание:
+Напишите скрипт (bash, python, …), который проверяет доступность web-сервиса и в случае его
+недоступности отправляет email системному администратору, но не чаще 1-го раза за "падение"
+"""
 import smtplib
 import subprocess
 import datetime
 import os
 import argparse
-from pathlib import Path
 
 FROM_EMAIL = 'отправитель@gmail.com'
 PASSWORD = 'пароль'
@@ -12,8 +16,22 @@ NOTIFIED_MESSAGE = ' | Administrator has been notified'
 
 
 def add_log(message):
-    with open(LOG_PATH, 'a') as script_log:
+    with open(LOG_PATH, 'a+') as script_log:
         script_log.write(date_time + message + '\n')
+
+
+'''def get_last_line(path):
+    """
+    проверим, есть ли лог и прочитаем последнюю строку. Нас интересует строка о неуспешной проверке
+    @param path:
+    @return:
+    """
+    if not os.path.isfile(path):
+        with open(LOG_PATH, 'a+') as script_log:
+            script_log.write('date&time | message \n')
+    with open(LOG_PATH, 'r') as script_log:
+        last_line = script_log.readlines()[-1]
+    return last_line'''
 
 
 if __name__ == '__main__':
@@ -35,19 +53,13 @@ if __name__ == '__main__':
     mailer.starttls()
     mailer.login(FROM_EMAIL, args.pwd)
 
-    """
-    проверим, есть ли лог и прочитаем последнюю строку. Нас интересует строка о неуспешной проверке
-    @param path:
-    @return:
-    """
+    # get_last_line(LOG_PATH)
     if not os.path.isfile(LOG_PATH):
-        script_log = Path(LOG_PATH)
-        script_log.touch(exist_ok=True)
-        script_log = open(LOG_PATH, 'a')
-        script_log.write('date&time | message \n')
-        script_log.close()
+        with open(LOG_PATH, 'a+') as script_log:
+            script_log.write('date&time | message \n')
     with open(LOG_PATH, 'r') as script_log:
-        last_check = script_log.readlines()[-1]
+        last_line = script_log.readlines()[-1]
+
 
     try:
         response = subprocess.call(['ping -c 1 ' + ip], shell=True, stdout=subprocess.PIPE)
@@ -58,7 +70,7 @@ if __name__ == '__main__':
         else:
             result = f'{ip} is down!'
             """проверим, не был ли администратор уведомлен раньше"""
-            if result in last_check:
+            if result in last_line:
                 add_log(f' | Check result = {response} host  {result}')
             else:
                 mailer.sendmail(FROM_EMAIL, TO_EMAIL, text)
